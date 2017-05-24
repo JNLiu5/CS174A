@@ -313,3 +313,60 @@ Declare_Any_Class( "Text_Line", // Draws a rectangle textured with images of ASC
         gl.bufferData( gl.ARRAY_BUFFER, flatten(this.texture_coords), gl.STATIC_DRAW );
       }
   }, Shape )
+
+  // *********** SHIP ***********
+Declare_Any_Class( "Ship",
+  { 'populate'()
+      {
+        //  top
+        this.positions.push( vec3(0, 0.5, -2), vec3(-1.5, 0.5, 1), vec3(1.5, 0.5, 1) );
+        this.positions.push( vec3(-1.5, 0.5, 1), vec3(-2, 0.5, 2), vec3(0, 0.5, 1) );
+        this.positions.push( vec3(1.5, 0.5, 1), vec3(2, 0.5, 2), vec3(0, 0.5, 1) );
+        this.normals.push( vec3(0, 1, 0), vec3(0, 1, 0), vec3(0, 1, 0) );
+        this.normals.push( vec3(0, 1, 0), vec3(0, 1, 0), vec3(0, 1, 0) );
+        this.normals.push( vec3(0, 1, 0), vec3(0, 1, 0), vec3(0, 1, 0) );
+
+        //  bottom
+        this.positions.push( vec3(0, -0.5, -2), vec3(-1.5, -0.5, 1), vec3(1.5, -0.5, 1) );
+        this.normals.push( vec3(0, -1, 0), vec3(0, -1, 0), vec3(0, -1, 0) );
+
+        //  back
+        this.positions.push( vec3(-1.5, -0.5, 1), vec3(-2, 0.5, 2), vec3(0, -0.5, 1) );
+        this.positions.push( vec3(1.5, -0.5, 1), vec3(2, 0.5, 2), vec3(0, -0.5, 1) );
+        this.normals.push( vec3(0, -1.5, 1.5), vec3(0, -1.5, 1.5), vec3(0, -1.5, 1.5) );
+        this.normals.push( vec3(0, -1.5, 1.5), vec3(0, -1.5, 1.5), vec3(0, -1.5, 1.5) );
+
+        this.positions.push( vec3(-2, 0.5, 2), vec3(0, 0.5, 1), vec3(0, -0.5, 1) );
+        this.positions.push( vec3(2, 0.5, 2), vec3(0, 0.5, 1), vec3(0, -0.5, 1) );
+        this.normals.push( vec3(1, 0, 2), vec3(1, 0, 2), vec3(1, 0, 2) );
+        this.normals.push( vec3(-1, 0, 2), vec3(-1, 0, 2), vec3(-1, 0, 2) );
+
+        //  sides
+        this.positions.push( vec3(-2, 0.5, 2), vec3(-1.5, -0.5, 1), vec3(0, -0.5, -2) );
+        this.positions.push( vec3(-2, 0.5, 2), vec3(0, 0.5, -2), vec3(0, -0.5, -2) );
+        this.normals.push( vec3(-2, 0, -1), vec3(-2, 0, -1), vec3(-2, 0, -1) );
+        this.normals.push( vec3(-2, 0, -1), vec3(-2, 0, -1), vec3(-2, 0, -1) );
+
+        this.positions.push( vec3(2, 0.5, 2), vec3(1.5, -0.5, 1), vec3(0, -0.5, -2) );
+        this.positions.push( vec3(2, 0.5, 2), vec3(0, 0.5, -2), vec3(0, -0.5, -2) );
+        this.normals.push( vec3(2, 0, -1), vec3(2, 0, -1), vec3(2, 0, -1) );
+        this.normals.push( vec3(2, 0, -1), vec3(2, 0, -1), vec3(2, 0, -1) );
+
+        this.texture_coords.push( vec3(0,0,0), vec3(1,0,0), vec3(0,1,0) );    // Each face in Method 2 also gets its own set of texture coords
+        this.texture_coords.push( vec3(0,0,0), vec3(1,0,0), vec3(0,1,0) );    //(half the image is mapped onto each face).  We couldn't do this
+        this.texture_coords.push( vec3(0,0,0), vec3(1,0,0), vec3(0,1,0) );    // with shared vertices -- after all, it involves different results
+        this.texture_coords.push( vec3(0,0,0), vec3(1,0,0), vec3(0,1,0) );    // when approaching the same point from different directions.
+        this.texture_coords.push( vec3(0,0,0), vec3(1,0,0), vec3(0,1,0) );
+        this.texture_coords.push( vec3(0,0,0), vec3(1,0,0), vec3(0,1,0) );
+        this.texture_coords.push( vec3(0,0,0), vec3(1,0,0), vec3(0,1,0) );
+        this.texture_coords.push( vec3(0,0,0), vec3(1,0,0), vec3(0,1,0) );
+        this.texture_coords.push( vec3(0,0,0), vec3(1,0,0), vec3(0,1,0) );
+        this.texture_coords.push( vec3(0,0,0), vec3(1,0,0), vec3(0,1,0) );
+        this.texture_coords.push( vec3(0,0,0), vec3(1,0,0), vec3(0,1,0) );
+        this.texture_coords.push( vec3(0,0,0), vec3(1,0,0), vec3(0,1,0) );
+
+        for(var i = 0; i < 36; i++) {
+          this.indices.push(i);
+        }    
+      }
+  }, Shape )

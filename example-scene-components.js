@@ -499,10 +499,12 @@ Declare_Any_Class( "Custom_Animation",  // An example of drawing a hierarchical 
       	{ var shapes = {	"cube": new Cube(),
       						"ring": new Cylindrical_Tube(60, 60),
       						"arrow": new Axis_Arrows(),
+      						"ship": new Ship()
                       };
         this.submit_shapes( context, shapes );
 
         this.define_data_members({	string_map: context.globals.string_map,
+        							camera_mode: false,
         							objects: [],
         							mspf: 0,
         							last_frame_time: 0,
@@ -535,7 +537,7 @@ Declare_Any_Class( "Custom_Animation",  // An example of drawing a hierarchical 
         var z = [0, 0, 0];
 
         //	object 0: ship
-        var ship = new Object(this.shapes.cube, this.head, [1, 1, 1], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]);
+        var ship = new Object(this.shapes.ship, this.head, [1, 1, 1], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]);
         this.objects.push(ship);
 
         //	object 1: ground
@@ -584,6 +586,8 @@ Declare_Any_Class( "Custom_Animation",  // An example of drawing a hierarchical 
       	//	thrust right
       	controls.add( "l", this, function() { this.objects[0].acceleration[0] = 10; });
       	controls.add( "l", this, function() { this.objects[0].acceleration[0] = 0; }, {'type':'keyup'} );
+      	//	camera toggle
+      	controls.add( "v", this, function() { this.camera_mode = !this.camera_mode; });
       },
       'update_strings'( debug_screen_object )   // Strings that this Scene_Component contributes to the UI:
       { 
@@ -592,10 +596,7 @@ Declare_Any_Class( "Custom_Animation",  // An example of drawing a hierarchical 
     'display'( graphics_state )
       {
         // *** Lights: *** Values of vector or point lights over time.  Two different lights *per shape* supported; more requires changing a number in the vertex shader.
-        /*graphics_state.lights = [ new Light( vec4(  30,  30,  34, 1 ), Color( 0, .4, 0, 1 ), 100000 ),      // Arguments to construct a Light(): Light source position or 
-                                  new Light( vec4( -10, -20, -14, 0 ), Color( 1, 1, .3, 1 ), 100    ) ];    // vector (homogeneous coordinates), color, and size.  */
-
-        graphics_state.lights = [ new Light( vec4(0, 1000, 0, 0), Color( 1, 1, 1, 1 ), 100000 ) ];    // vector (homogeneous coordinates), color, and size.
+      	graphics_state.lights = [ new Light( vec4(0, 1000, 0, 0), Color( 1, 1, 1, 1 ), 100000 ) ];    // vector (homogeneous coordinates), color, and size.
         var time = graphics_state.animation_time;
        	var delta_t = time - this.last_frame_time;
         this.last_frame_time = time;
@@ -633,7 +634,23 @@ Declare_Any_Class( "Custom_Animation",  // An example of drawing a hierarchical 
         }
 
         //	adjust camera
-        graphics_state.camera_transform = inverse(mult(this.objects[0].matrix, translation(0, 3, 20)));
+        //	flight mode
+        if(!this.camera_mode) {
+        	graphics_state.camera_transform = inverse(mult(this.objects[0].matrix, translation(0, 3, 20)));
+    	}
+    	//	focus on center mode
+    	else {
+    		var m = this.objects[0].matrix;
+    		var center = this.objects[2].matrix;
+    		var diff = [m[0][3] - center[0][3], m[1][3] - center[1][3], m[2][3] - center[2][3]];
+    		var magnitude = Math.sqrt(diff[0] * diff[0] + diff[1] * diff[1] + diff[2] * diff[2]);
+    		var vector = [];
+    		for(var j = 0; j < 3; j++) {
+    			vector.push(center[j][3] + diff[j] + diff[j]/magnitude * 20);
+    		}
+    		//var vector = [center[0][3] + diff[0] * 1.1, center[1][3] + diff[1] * 1.1, center[2][3] + diff[2] * 1.1];
+    		graphics_state.camera_transform = lookAt(vector, [center[0][3], center[1][3], center[2][3]], [0, 1, 0]);
+    	}
 
         //	generate hierarchical gimbal
         var m_ring = mult(this.objects[2].matrix, rotation(12/360 * graphics_state.animation_time, 1, 0, 0));
