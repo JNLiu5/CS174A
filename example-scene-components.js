@@ -497,7 +497,8 @@ Declare_Any_Class( "Object_Collision_Scene",    // Scenario 2: Detect when some 
 Declare_Any_Class( "Custom_Animation",  // An example of drawing a hierarchical object using a "model_transform" matrix and post-multiplication.
   { 'construct'( context )
       	{ var shapes = {	"cube": new Cube(),
-      						"ship": new Rounded_Capped_Cylinder(60, 60),
+      						"ring": new Cylindrical_Tube(60, 60),
+      						"arrow": new Axis_Arrows(),
                       };
         this.submit_shapes( context, shapes );
 
@@ -506,36 +507,44 @@ Declare_Any_Class( "Custom_Animation",  // An example of drawing a hierarchical 
         							mspf: 0,
         							last_frame_time: 0,
         							grass: context.shaders_in_use["Phong_Model"].material( Color( 0.5, 1, 0, 1 ), .2, 1,  1, 40 ),
-                                    wood: context.shaders_in_use["Phong_Model"].material( Color( 0.33, 0.2, 0.05, 1 ), .2, 1,  1, 40 ),
-                                    leaves: context.shaders_in_use["Phong_Model"].material( Color( 0.125, 0.5, 0.125, 1 ), .2, 1,  1, 40 ), 
-                                    head: context.shaders_in_use["Phong_Model"].material( Color( 0.25, 0.25, 0, 1 ), .2, 1,  1, 40 ),
-                                    thorax: context.shaders_in_use["Phong_Model"].material( Color( 0.125, 0.125, 0, 1 ), .2, 1,  1, 40 ),
+                                    red: context.shaders_in_use["Phong_Model"].material( Color( 1, 0, 0, 1 ), .2, 1,  1, 40 ),
+                                    green: context.shaders_in_use["Phong_Model"].material( Color( 0, 1, 0, 1 ), .2, 1,  1, 40 ), 
+                                    blue: context.shaders_in_use["Phong_Model"].material( Color( 0, 0, 1, 1 ), .2, 1,  1, 40 ),
+                                    white: context.shaders_in_use["Phong_Model"].material( Color( 1, 1, 1, 1 ), .2, 1,  1, 40 ),
+                                    head: context.shaders_in_use["Phong_Model"].material( Color( 0.25, 0.25, 0, 1 ), .2, 1,  1, 40 ), 
                                     abdomen: context.shaders_in_use["Phong_Model"].material( Color( 0.5, 0.5, 0, 1 ), .2, 1,  1, 40 ),
-                                    wings: context.shaders_in_use["Phong_Model"].material( Color( 0.5, 0.5, 0.5, 0.5 ), .2, 1,  1, 40 )
+                                    wings: context.shaders_in_use["Phong_Model"].material( Color( 0.5, 0.5, 0.5, 0.5 ), .2, 1,  1, 40 ),
+                                    sky: context.shaders_in_use["Phong_Model"].material( Color( 0.5, 0.75, 1, 1 ), .2, 1,  1, 40 )
                                 });
-
-
 
         function Object(type, color, size, position, vel, acc, attitude, av) {
         	this.type = type;
         	this.color = color;
+        	this.size = size;
         	this.matrix = mult(identity(), translation(position[0], position[1], position[2]));
         	this.matrix = mult(this.matrix, rotation(attitude[0], 1, 0, 0));
         	this.matrix = mult(this.matrix, rotation(attitude[1], 0, 1, 0));
         	this.matrix = mult(this.matrix, rotation(attitude[2], 0, 0, 1));
-        	this.matrix = mult(this.matrix, scale(size[0], size[1], size[2]));
         	this.velocity = vel;
         	this.acceleration = acc;
         	this.ang_vel = av;
         }
+
+        //	because I got tired of typing it repeatedly
+        //	note: do not use on anything that moves because JavaScript will overwrite it 
+        var z = [0, 0, 0];
+
         //	object 0: ship
         var ship = new Object(this.shapes.cube, this.head, [1, 1, 1], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]);
         this.objects.push(ship);
 
         //	object 1: ground
-        var ground = new Object(this.shapes.cube, this.grass, [10, 1/10, 10], [0, -10, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]);
+        var ground = new Object(this.shapes.cube, this.grass, [1000, 1, 1000], [0, -30, 0], z, z, z, z);
         this.objects.push(ground);
 
+        //	object 2: gimbal outer ring
+        var o_ring = new Object(this.shapes.ring, this.red, [25, 25, 1], [0, 0, -60], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 30, 0]);
+        this.objects.push(o_ring);
     },
     'init_keys'( controls )   // init_keys():  Define any extra keyboard shortcuts here
       { 
@@ -583,9 +592,10 @@ Declare_Any_Class( "Custom_Animation",  // An example of drawing a hierarchical 
     'display'( graphics_state )
       {
         // *** Lights: *** Values of vector or point lights over time.  Two different lights *per shape* supported; more requires changing a number in the vertex shader.
-        graphics_state.lights = [ new Light( vec4(  30,  30,  34, 1 ), Color( 0, .4, 0, 1 ), 100000 ),      // Arguments to construct a Light(): Light source position or 
-                                  new Light( vec4( -10, -20, -14, 0 ), Color( 1, 1, .3, 1 ), 100    ) ];    // vector (homogeneous coordinates), color, and size.  
+        /*graphics_state.lights = [ new Light( vec4(  30,  30,  34, 1 ), Color( 0, .4, 0, 1 ), 100000 ),      // Arguments to construct a Light(): Light source position or 
+                                  new Light( vec4( -10, -20, -14, 0 ), Color( 1, 1, .3, 1 ), 100    ) ];    // vector (homogeneous coordinates), color, and size.  */
 
+        graphics_state.lights = [ new Light( vec4(0, 1000, 0, 0), Color( 1, 1, 1, 1 ), 100000 ) ];    // vector (homogeneous coordinates), color, and size.
         var time = graphics_state.animation_time;
        	var delta_t = time - this.last_frame_time;
         this.last_frame_time = time;
@@ -605,22 +615,38 @@ Declare_Any_Class( "Custom_Animation",  // An example of drawing a hierarchical 
         	var v = this.objects[i].velocity;
         	model_transform = mult(model_transform, translation(v[0] * delta_t/1000 , v[1] * delta_t/1000, v[2] * delta_t/1000));
 
-        	this.objects[i].type.draw(graphics_state, model_transform, this.objects[i].color);
+        	var final_transform = mult(model_transform, scale(this.objects[i].size[0], this.objects[i].size[1], this.objects[i].size[2]));
+
+        	this.objects[i].type.draw(graphics_state, final_transform, this.objects[i].color);
 
         	this.objects[i].matrix = model_transform;
+        }
 
-        	//	kill all but forwards velocity
-        	for(var j = 0; j < 3; j++) {
-        		if(j == 2 && this.objects[i].velocity[j] < 0) {
-        			//	do nothing, this is forwards velocity
-        		}
-        		else if(this.objects[i].acceleration[j] != 10 && this.objects[i].acceleration[j] != -10) {
-        			this.objects[i].acceleration[j] = this.objects[i].velocity[j] * -1;
-        		}
+        //	kill all but forwards velocity
+        for(var j = 0; j < 3; j++) {
+        	if(j == 2 && this.objects[0].velocity[j] < 0) {
+        		//	do nothing, this is forwards velocity
+        	}
+        	else if(this.objects[0].acceleration[j] != 10 && this.objects[0].acceleration[j] != -10) {
+        		this.objects[0].acceleration[j] = this.objects[0].velocity[j] * -1;
         	}
         }
 
+        //	adjust camera
         graphics_state.camera_transform = inverse(mult(this.objects[0].matrix, translation(0, 3, 20)));
+
+        //	generate hierarchical gimbal
+        var m_ring = mult(this.objects[2].matrix, rotation(12/360 * graphics_state.animation_time, 1, 0, 0));
+        m_ring = mult(m_ring, scale(24, 24, 1));
+        this.shapes.ring.draw(graphics_state, m_ring, this.green);
+
+        var i_ring = mult(m_ring, scale(1/24, 1/24, 1));
+        i_ring = mult(i_ring, rotation(12/360 * graphics_state.animation_time, 0, 1, 0));
+        i_ring = mult(i_ring, scale(23, 23, 1));
+        this.shapes.ring.draw(graphics_state, i_ring, this.blue);
+
+        var arrow = mult(i_ring, scale(1/23, 1/23, 1));
+        this.shapes.arrow.draw(graphics_state, arrow, this.white);
 
         this.mspf = graphics_state.animation_delta_time;
       }

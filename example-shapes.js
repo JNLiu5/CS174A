@@ -313,17 +313,3 @@ Declare_Any_Class( "Text_Line", // Draws a rectangle textured with images of ASC
         gl.bufferData( gl.ARRAY_BUFFER, flatten(this.texture_coords), gl.STATIC_DRAW );
       }
   }, Shape )
-/*
-Declare_Any_Class( "Ship", { 
-  populate(rows, columns) {
-    Rounded_Capped_Cylinder.prototype.insert_transformed_copy_into(this, [rows, columns], mult(rotation(90, 1, 0, 0), scale(2, 2, 4)));
-
-    var model = mult(translation(0, 3, 0), rotation(-90, 1, 0, 0));
-    model = mult(model, scale(2, 2, 1));
-    Rounded_Closed_Cone.prototype.insert_transformed_copy_into(this, [rows, columns], model);
-    
-    model = mult(model, scale(1/2, 1/2, 1));
-
-    //Closed_Cone.prototype.insert_transformed_copy_into(this, [rows, columns], mult(scale(0.5, 1, 1), rotation(-90, 1, 0, 0),translation(0, 10, 0)));
-  }
-}, Shape)*/
