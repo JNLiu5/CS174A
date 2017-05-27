@@ -52,22 +52,23 @@ Declare_Any_Class( "Tetrahedron",              // A demo of flat vs smooth shadi
             this.indices.push( 0, 1, 2,   0, 1, 3,   0, 2, 3,    1, 2, 3 );                     // Vertices are shared multiple times with this method.
         }
         else
-        { this.positions.push( vec3(0,0,0), vec3(1,0,0), vec3(0,1,0) );         // Method 2:  A tetrahedron with four independent triangles.
-          this.positions.push( vec3(0,0,0), vec3(1,0,0), vec3(0,0,1) );
-          this.positions.push( vec3(0,0,0), vec3(0,1,0), vec3(0,0,1) );
-          this.positions.push( vec3(0,0,1), vec3(1,0,0), vec3(0,1,0) );
+        { 
+          this.positions.push( [0,0,0], [1,0,0], [0,1,0],         // Method 2:  A tetrahedron with 
+                               [0,0,0], [1,0,0], [0,0,1],         // four independent triangles.
+                               [0,0,0], [0,1,0], [0,0,1],
+                               [0,0,1], [1,0,0], [0,1,0] );
 
-          this.normals.push( vec3(0,0,-1), vec3(0,0,-1), vec3(0,0,-1) );           // Here's where you can tell Method 2 is flat shaded, since
-          this.normals.push( vec3(0,-1,0), vec3(0,-1,0), vec3(0,-1,0) );           // each triangle gets a single unique normal value.
-          this.normals.push( vec3(-1,0,0), vec3(-1,0,0), vec3(-1,0,0) );
-          this.normals.push( vec3( a,a,a), vec3( a,a,a), vec3( a,a,a) );
+          this.normals.push( [0,0,-1], [0,0,-1], [0,0,-1],        // This here makes Method 2 flat shaded, since
+                             [0,-1,0], [0,-1,0], [0,-1,0],        // normal values can be constant per-triangle.
+                             [-1,0,0], [-1,0,0], [-1,0,0],        // Repeat them for all three vertices.
+                             [ a,a,a], [ a,a,a], [ a,a,a] );
 
-          this.texture_coords.push( vec3(0,0,0), vec3(1,0,0), vec3(0,1,0) );    // Each face in Method 2 also gets its own set of texture coords
-          this.texture_coords.push( vec3(0,0,0), vec3(1,0,0), vec3(0,1,0) );    //(half the image is mapped onto each face).  We couldn't do this
-          this.texture_coords.push( vec3(0,0,0), vec3(1,0,0), vec3(0,1,0) );    // with shared vertices -- after all, it involves different results
-          this.texture_coords.push( vec3(0,0,0), vec3(1,0,0), vec3(0,1,0) );    // when approaching the same point from different directions.
+          this.texture_coords.push( [0,0], [1,0], [1,0],    // Each face in Method 2 also gets its own set of texture coords
+                                    [0,0], [1,0], [1,0],    //(half the image is mapped onto each face).  We couldn't do this
+                                    [0,0], [1,0], [1,0],    // with shared vertices since this features abrupt transitions
+                                    [0,0], [1,0], [1,0] );  // when approaching the same point from different directions.
 
-          this.indices.push( 0, 1, 2,    3, 4, 5,    6, 7, 8,    9, 10, 11 );      // Notice all vertices are unique this time.
+          this.indices.push( 0, 1, 2,    3, 4, 5,    6, 7, 8,    9, 10, 11 );      // Notice all vertices are unique this time.        }
         }
       }
   }, Shape )
@@ -352,18 +353,18 @@ Declare_Any_Class( "Ship",
         this.normals.push( vec3(2, 0, -1), vec3(2, 0, -1), vec3(2, 0, -1) );
         this.normals.push( vec3(2, 0, -1), vec3(2, 0, -1), vec3(2, 0, -1) );
 
-        this.texture_coords.push( vec3(0,0,0), vec3(1,0,0), vec3(0,1,0) );    // Each face in Method 2 also gets its own set of texture coords
-        this.texture_coords.push( vec3(0,0,0), vec3(1,0,0), vec3(0,1,0) );    //(half the image is mapped onto each face).  We couldn't do this
-        this.texture_coords.push( vec3(0,0,0), vec3(1,0,0), vec3(0,1,0) );    // with shared vertices -- after all, it involves different results
-        this.texture_coords.push( vec3(0,0,0), vec3(1,0,0), vec3(0,1,0) );    // when approaching the same point from different directions.
-        this.texture_coords.push( vec3(0,0,0), vec3(1,0,0), vec3(0,1,0) );
-        this.texture_coords.push( vec3(0,0,0), vec3(1,0,0), vec3(0,1,0) );
-        this.texture_coords.push( vec3(0,0,0), vec3(1,0,0), vec3(0,1,0) );
-        this.texture_coords.push( vec3(0,0,0), vec3(1,0,0), vec3(0,1,0) );
-        this.texture_coords.push( vec3(0,0,0), vec3(1,0,0), vec3(0,1,0) );
-        this.texture_coords.push( vec3(0,0,0), vec3(1,0,0), vec3(0,1,0) );
-        this.texture_coords.push( vec3(0,0,0), vec3(1,0,0), vec3(0,1,0) );
-        this.texture_coords.push( vec3(0,0,0), vec3(1,0,0), vec3(0,1,0) );
+        this.texture_coords.push( [0,0] , [1,0], [0,1] );    // Each face in Method 2 also gets its own set of texture coords
+        this.texture_coords.push( [0,0] , [1,0], [0,1] );    //(half the image is mapped onto each face).  We couldn't do this
+        this.texture_coords.push( [0,0] , [1,0], [0,1] );    // with shared vertices -- after all, it involves different results
+        this.texture_coords.push( [0,0] , [1,0], [0,1] );   // when approaching the same point from different directions.
+        this.texture_coords.push( [1,0] , [1,1], [0,1] );
+        this.texture_coords.push( [1,0] , [1,1], [0,1] );
+        this.texture_coords.push( [1,0] , [1,1], [0,1] );
+        this.texture_coords.push( [1,0] , [1,1], [0,1] );
+        this.texture_coords.push( [1,0] , [1,1], [0,1] );
+        this.texture_coords.push( [1,0] , [1,1], [0,1] );
+        this.texture_coords.push( [1,0] , [1,1], [0,1] );
+        this.texture_coords.push( [1,0] , [1,1], [0,1] );
 
         for(var i = 0; i < 36; i++) {
           this.indices.push(i);

@@ -1,0 +1,40 @@
+Justin Liu | 504-487-373
+COM SCI 174A | Dis 1B
+2017-05-26
+
+Assignment 2
+
+Welcome to my Flight Simulator v1.74. I probably spent way too much time working on the flight mechanics instead of the graphics.
+
+Here are the basics:
+
+Controls:
+W - pitch down
+S - pitch up
+A - yaw left
+D - yaw right
+E - roll clockwise
+Q - roll counterclockwise
+
+Luckily your "plane" has VTOL capabilities and can move in all directions!
+
+H - accelerate forwards
+N - break/move backwards
+I - move down
+K - move up
+J - move left
+L - move right
+
+Note that if moving forward, you will keep moving forward even if you let go of H. H will make you go faster. There is no maximum speed limit. This is not true for the other directions.
+
+V - toggle camera mode
+
+The camera has chase mode and orbital mode. In chase mode it just sticks behind your plane, and in orbital mode it is always focused on the spinning gimbal in the center of the map. You can use orbital mode to inspect the player model from all directions, or to get back to the center if you get disoriented.
+
+Grading notes:
+- My hierarchical object is the gimbal in the center of the map.
+- Orbital camera mode is done through use of lookAt()
+- The "plane" is my custom object, and the custom texture makes it red on the top/bottom and white on the sides
+- Press T for FPS readings
+- Obviously this isn't the most aesthetically pleasing thing in the world, but flying around is kind of fun
+

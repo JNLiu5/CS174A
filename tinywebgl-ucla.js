@@ -38,6 +38,7 @@ Declare_Any_Class( "Shape",
           gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.index_buffer);
           gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint32Array(this.indices), gl.STATIC_DRAW);
         }
+        this.sent_to_GPU = true;
         this.gl = gl;
       },      
     'draw'( graphics_state, model_transform, material, gl = this.gl )                          // The same draw() function is used for every shape -

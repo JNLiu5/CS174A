@@ -664,12 +664,12 @@ function toMat3( mat4_affine )    // Slice off the 4th row and column of a matri
     return m;
   }
  
-function hermite_curve_point( a, b, da, db, t, epsilon = .0001 )    // Static function to generate one intermediate point (anywhere) along a curve you supply, based on 
-  {                                                                 // parameter t.  To specify the curve's location, supply endpoints a and b and tangents da and db. 
-    var curveMatrix = [b, a, db, da]; curveMatrix.matrix = true;    // The return value is not a position but an object, containing a position and a normal vector.
-    var hermiteMatrix = mat4( -2, 3, 0, 0,   2, -3, 0, 1,   1, -1, 0, 0,   1, -2, 1, 0 ),  t_next = t + epsilon,
-    point1 = mult_vec( mult( transpose( curveMatrix ), hermiteMatrix ), vec4( t*t*t,                t*t,           t,      1 ) ), //Apply the hermite polynomial at time t to generate a point
-    point2 = mult_vec( mult( transpose( curveMatrix ), hermiteMatrix ), vec4( t_next*t_next*t_next, t_next*t_next, t_next, 1 ) ); //Also generate another point slightly ahead of that
+function hermite_curve_point( a, b, da, db, t, epsilon = .0001 )    // Generates one intermediate point (anywhere) along a curve you supply, based on argument
+  {                                                                 // t.  To specify the curve's location, supply endpoints a and b and tangents da and db. 
+    var constraints = [a, b, da, db]; constraints.matrix = true;    // Returns an object, containing a position and a tangent vector.
+    var hermiteMatrix = mat4([2, -3, 0, 1],  [-2, 3, 0, 0], [1, -2, 1, 0], [1, -1, 0, 0]);                        // Matrix is row major order.
+    point1 = mult_vec( mult( transpose( constraints ), hermiteMatrix ), vec4( t*t*t, t*t, t, 1 ) ), t += epsilon, // Solve hermite polynomial at t.
+    point2 = mult_vec( mult( transpose( constraints ), hermiteMatrix ), vec4( t*t*t, t*t, t, 1 ) );               // Solve again slightly ahead of t.
     return { position: point1.slice(0,3), tangent: subtract( point2, point1 ).slice(0,3) };
   }
   

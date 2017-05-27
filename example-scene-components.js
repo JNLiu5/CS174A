@@ -516,7 +516,8 @@ Declare_Any_Class( "Custom_Animation",  // An example of drawing a hierarchical 
                                     head: context.shaders_in_use["Phong_Model"].material( Color( 0.25, 0.25, 0, 1 ), .2, 1,  1, 40 ), 
                                     abdomen: context.shaders_in_use["Phong_Model"].material( Color( 0.5, 0.5, 0, 1 ), .2, 1,  1, 40 ),
                                     wings: context.shaders_in_use["Phong_Model"].material( Color( 0.5, 0.5, 0.5, 0.5 ), .2, 1,  1, 40 ),
-                                    sky: context.shaders_in_use["Phong_Model"].material( Color( 0.5, 0.75, 1, 1 ), .2, 1,  1, 40 )
+                                    sky: context.shaders_in_use["Phong_Model"].material( Color( 0.5, 0.75, 1, 1 ), .2, 1,  1, 40 ),
+                                    red_white: context.shaders_in_use["Phong_Model"  ].material( Color( 0.5, 0.5, 0.5 ,1 ), 0.2, 1, 1, 40, context.textures_in_use["red-white.png"])
                                 });
 
         function Object(type, color, size, position, vel, acc, attitude, av) {
@@ -537,7 +538,7 @@ Declare_Any_Class( "Custom_Animation",  // An example of drawing a hierarchical 
         var z = [0, 0, 0];
 
         //	object 0: ship
-        var ship = new Object(this.shapes.ship, this.head, [1, 1, 1], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]);
+        var ship = new Object(this.shapes.ship, this.red_white, [1, 1, 1], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]);
         this.objects.push(ship);
 
         //	object 1: ground
@@ -547,6 +548,9 @@ Declare_Any_Class( "Custom_Animation",  // An example of drawing a hierarchical 
         //	object 2: gimbal outer ring
         var o_ring = new Object(this.shapes.ring, this.red, [25, 25, 1], [0, 0, -60], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 30, 0]);
         this.objects.push(o_ring);
+
+        var wall = new Object(this.shapes.cube, this.sky, [1000, 1000, 1], [0, 0, 512], z, z, z, z);
+        this.objects.push(wall);
     },
     'init_keys'( controls )   // init_keys():  Define any extra keyboard shortcuts here
       { 
@@ -596,7 +600,7 @@ Declare_Any_Class( "Custom_Animation",  // An example of drawing a hierarchical 
     'display'( graphics_state )
       {
         // *** Lights: *** Values of vector or point lights over time.  Two different lights *per shape* supported; more requires changing a number in the vertex shader.
-      	graphics_state.lights = [ new Light( vec4(0, 1000, 0, 0), Color( 1, 1, 1, 1 ), 100000 ) ];    // vector (homogeneous coordinates), color, and size.
+      	graphics_state.lights = [ new Light( vec4(0, 1024, 0, 0), Color( 1, 1, 1, 1 ), 100000 ) ];    // vector (homogeneous coordinates), color, and size.
         var time = graphics_state.animation_time;
        	var delta_t = time - this.last_frame_time;
         this.last_frame_time = time;
@@ -633,25 +637,6 @@ Declare_Any_Class( "Custom_Animation",  // An example of drawing a hierarchical 
         	}
         }
 
-        //	adjust camera
-        //	flight mode
-        if(!this.camera_mode) {
-        	graphics_state.camera_transform = inverse(mult(this.objects[0].matrix, translation(0, 3, 20)));
-    	}
-    	//	focus on center mode
-    	else {
-    		var m = this.objects[0].matrix;
-    		var center = this.objects[2].matrix;
-    		var diff = [m[0][3] - center[0][3], m[1][3] - center[1][3], m[2][3] - center[2][3]];
-    		var magnitude = Math.sqrt(diff[0] * diff[0] + diff[1] * diff[1] + diff[2] * diff[2]);
-    		var vector = [];
-    		for(var j = 0; j < 3; j++) {
-    			vector.push(center[j][3] + diff[j] + diff[j]/magnitude * 20);
-    		}
-    		//var vector = [center[0][3] + diff[0] * 1.1, center[1][3] + diff[1] * 1.1, center[2][3] + diff[2] * 1.1];
-    		graphics_state.camera_transform = lookAt(vector, [center[0][3], center[1][3], center[2][3]], [0, 1, 0]);
-    	}
-
         //	generate hierarchical gimbal
         var m_ring = mult(this.objects[2].matrix, rotation(12/360 * graphics_state.animation_time, 1, 0, 0));
         m_ring = mult(m_ring, scale(24, 24, 1));
@@ -665,6 +650,36 @@ Declare_Any_Class( "Custom_Animation",  // An example of drawing a hierarchical 
         var arrow = mult(i_ring, scale(1/23, 1/23, 1));
         this.shapes.arrow.draw(graphics_state, arrow, this.white);
 
+        // generate skybox
+        var m = this.objects[3].matrix;
+        for(var j = 0; j < 3; j++) {
+        	m = mult(m, translation(0, 0, -512));
+        	m = mult(m, rotation(90, 0, 1, 0));
+        	m = mult(m, translation(0, 0, 512));
+        	m = mult(m, scale(1000, 1000, 1));
+        	this.shapes.cube.draw(graphics_state, m, this.sky);
+        	m = mult(m, scale(1/1000, 1/1000, 1));
+        }
+
         this.mspf = graphics_state.animation_delta_time;
+
+        //  adjust camera
+        //  flight mode
+        if(!this.camera_mode) {
+          graphics_state.camera_transform = inverse(mult(this.objects[0].matrix, translation(0, 3, 20)));
+        }
+        //  focus on center mode
+        else {
+          var m = this.objects[0].matrix;
+          var center = this.objects[2].matrix;
+          var diff = [m[0][3] - center[0][3], m[1][3] - center[1][3], m[2][3] - center[2][3]];
+          var magnitude = Math.sqrt(diff[0] * diff[0] + diff[1] * diff[1] + diff[2] * diff[2]);
+          var vector = [];
+          for(var j = 0; j < 3; j++) {
+            vector.push(center[j][3] + diff[j] + diff[j]/magnitude * 20);
+          }
+          //var vector = [center[0][3] + diff[0] * 1.1, center[1][3] + diff[1] * 1.1, center[2][3] + diff[2] * 1.1];
+          graphics_state.camera_transform = lookAt(vector, [center[0][3], center[1][3], center[2][3]], [0, 1, 0]);
+        }
       }
   }, Scene_Component );
