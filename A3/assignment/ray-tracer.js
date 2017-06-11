@@ -18,6 +18,7 @@ Declare_Any_Class( "Ball",              // The following data members of a ball 
           //        value along the ray, and a normal), updates it if needed, and returns it.  Only counts intersections that are at least a given distance ahead along the ray.
           //        Tip:  Once intersect() is done, call it in trace() as you loop through all the spheres until you've found the ray's nearest available intersection.  Simply
           //        return a dummy color if the intersection tests positiv.  This will show the spheres' outlines, giving early proof that you did intersect() correctly.
+        //console.log(ray);
         var S = vec4(ray.origin[0], ray.origin[1], ray.origin[2], ray.origin[3]);
         var C = vec4(ray.dir[0], ray.dir[1], ray.dir[2], ray.dir[3]);
         S = mult_vec(this.inverse, S);
@@ -118,8 +119,11 @@ Declare_Any_Class( "Ray_Tracer",
     //        significant, proceed with the current recursion, computing the Phong model's brightness of each color.  When recursing, scale color_remaining down by k_r
     //        or k_refract, multiplied by the "complement" (1-alpha) of the Phong color this recursion.  Use argument is_primary to indicate whether this is the original
     //        ray or a recursion.  Use the argument light_to_check when a recursive call to trace() is for computing a shadow ray.
-        
-        if( length( color_remaining ) < .3 )    return Color( 0, 0, 0, 1 );  // Each recursion, check if there's any remaining potential for the pixel to be brightened.
+        //console.log(length(color_remaining) + "\t" + color_remaining);
+        if( length( color_remaining ) < .3 ) {
+          console.log("Irrelevant");
+          return Color( 0, 0, 0, 1 );  // Each recursion, check if there's any remaining potential for the pixel to be brightened.
+        }
 
         var closest_intersection = { distance: Number.POSITIVE_INFINITY, ball: null, normal: null }    // An empty intersection object
         for(var i = 0; i < this.balls.length; i++) {
@@ -133,28 +137,86 @@ Declare_Any_Class( "Ray_Tracer",
         var specular = vec3(0, 0, 0);
   
         for(var i = 0; i < this.lights.length; i++) {
-          //  calculate diffuse
           var intersect = add(ray.origin, scale_vec(closest_intersection.distance, ray.dir));
           var d = subtract(this.lights[i].position, intersect);
-          var light_ray = { origin: intersect, dir: normalize(d, true)};
+          d = mult_vec(closest_intersection.ball.inverse_transpose, d);
+          d = normalize(d.slice(0,3));
+          d = vec4(d[0], d[1], d[2], 0);
+          var light_ray = { origin: intersect, dir: d};
           
           var light_intersect = { distance: Number.POSITIVE_INFINITY, ball: null, normal: null }    // An empty intersection object
           for(var j = 0; j < this.balls.length; j++) {
             this.balls[j].intersect(light_ray, light_intersect, 0.0001);
           }
           if(light_intersect.distance == Number.POSITIVE_INFINITY) {
+            //  calculate diffuse term
             var N_dot_L = dot(closest_intersection.normal, light_ray.dir);
             if(N_dot_L < 0) {
               N_dot_L = 0;
             }
-            var d_product = scale_vec(closest_intersection.ball.k_d, scale_vec(N_dot_L, closest_intersection.ball.color));
-            var light_diffuse = mult(d_product, this.lights[i].color.slice(0,3));
-            diffusion = add(diffusion, light_diffuse);
+            var diffuse_product = scale_vec(N_dot_L, closest_intersection.ball.color);
+            diffuse_product = scale_vec(closest_intersection.ball.k_d, diffuse_product);
+            diffuse_product = mult_3_coeffs(this.lights[i].color.slice(0,3), diffuse_product);
+            diffusion = add(diffusion, diffuse_product);
+
+            //  calculate specular term
+            var H = subtract(light_ray.dir, ray.dir);
+            H = normalize(H.slice(0, 3));
+            H = vec4(H[0], H[1], H[2], 0);
+
+            var N_dot_H = dot(closest_intersection.normal, H);
+            if(N_dot_H < 0) {
+              N_dot_H = 0;
+            }
+            var white = vec3(1, 1, 1);
+            var spec_product = scale_vec(Math.pow(N_dot_H, closest_intersection.ball.n), white);
+            spec_product = scale_vec(closest_intersection.ball.k_s, spec_product);
+            spec_product = mult_3_coeffs(this.lights[i].color.slice(0,3), spec_product);
+            specular = add(specular, spec_product);
           }
         }
-  
-        var sum = add(ambient, diffusion);
-        sum = add(sum, specular);
+        var surface_color = add(ambient, diffusion);
+        surface_color = add(surface_color, specular);
+
+        var reflection = vec3(0, 0, 0);
+        var refraction = vec3(0, 0, 0);
+
+        //  calculate reflection term
+        var R = 2 * dot(closest_intersection.normal, ray.dir);
+        R = scale_vec(R, closest_intersection.normal);
+        R = subtract(ray.dir, R);
+        var reflect_ray = { origin: add(ray.origin, scale_vec(closest_intersection.distance, ray.dir)), dir: normalize(R) };
+
+        var complement = vec3(0, 0, 0);
+        for(var k = 0; k < 3; k++) {
+          complement[k] = color_remaining[k] - surface_color[k];
+          if(complement[k] < 0) {
+            complement[k] = 0;
+          }
+          if(complement[k] > 1) {
+            complement[k] = 1;
+          }
+        }
+        console.log(length(complement));
+        var reflect_color_remaining = scale_vec(closest_intersection.ball.k_r, complement);
+
+        reflection = this.trace(reflect_ray, reflect_color_remaining, null).slice(0, 3);
+
+        //calculate refraction term
+        var inverted_N = scale_vec(-1, closest_intersection.normal);
+        var N_dot_L = dot(inverted_N, light_ray.dir);
+        var refract_2 = 1 - (N_dot_L * N_dot_L);
+        refract_2 = refract_2 * closest_intersection.ball.k_refract * closest_intersection.ball.k_refract;
+        refract_2 = closest_intersection.ball.k_refract * N_dot_L - Math.sqrt(1 - refract_2);
+        var refract_1 = scale_vec(closest_intersection.ball.k_refract, light_ray.dir);
+        var refraction_vec = add(refract_1, scale_vec(refract_2, closest_intersection.normal));
+        var refract_ray = { origin: add(ray.origin, scale_vec(closest_intersection.distance, ray.dir)), dir: normalize(refraction_vec)};
+
+        var refract_color_remaining = scale_vec(closest_intersection.ball.k_refract, complement);
+        refraction = this.trace(refract_ray, refract_color_remaining, null).slice(0, 3);
+
+        var sum = add(surface_color, reflection);
+        sum = add(sum, refraction);
 
         //  clamp
         for(var i = 0; i < sum.length; i++) {
