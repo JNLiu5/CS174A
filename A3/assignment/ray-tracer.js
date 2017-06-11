@@ -18,7 +18,6 @@ Declare_Any_Class( "Ball",              // The following data members of a ball 
           //        value along the ray, and a normal), updates it if needed, and returns it.  Only counts intersections that are at least a given distance ahead along the ray.
           //        Tip:  Once intersect() is done, call it in trace() as you loop through all the spheres until you've found the ray's nearest available intersection.  Simply
           //        return a dummy color if the intersection tests positiv.  This will show the spheres' outlines, giving early proof that you did intersect() correctly.
-        //console.log(ray);
         var S = vec4(ray.origin[0], ray.origin[1], ray.origin[2], ray.origin[3]);
         var C = vec4(ray.dir[0], ray.dir[1], ray.dir[2], ray.dir[3]);
         S = mult_vec(this.inverse, S);
@@ -119,9 +118,7 @@ Declare_Any_Class( "Ray_Tracer",
     //        significant, proceed with the current recursion, computing the Phong model's brightness of each color.  When recursing, scale color_remaining down by k_r
     //        or k_refract, multiplied by the "complement" (1-alpha) of the Phong color this recursion.  Use argument is_primary to indicate whether this is the original
     //        ray or a recursion.  Use the argument light_to_check when a recursive call to trace() is for computing a shadow ray.
-        //console.log(length(color_remaining) + "\t" + color_remaining);
         if( length( color_remaining ) < .3 ) {
-          console.log("Irrelevant");
           return Color( 0, 0, 0, 1 );  // Each recursion, check if there's any remaining potential for the pixel to be brightened.
         }
 
@@ -131,7 +128,6 @@ Declare_Any_Class( "Ray_Tracer",
         }
         if( !closest_intersection.ball )
           return this.color_missed_ray( ray );
-        //console.log(closest_intersection.normal);
         var ambient = scale_vec(closest_intersection.ball.k_a, closest_intersection.ball.color);
         var diffusion = vec3(0, 0, 0);
         var specular = vec3(0, 0, 0);
@@ -197,7 +193,6 @@ Declare_Any_Class( "Ray_Tracer",
             complement[k] = 1;
           }
         }
-        console.log(length(complement));
         var reflect_color_remaining = scale_vec(closest_intersection.ball.k_r, complement);
 
         reflection = this.trace(reflect_ray, reflect_color_remaining, null).slice(0, 3);
